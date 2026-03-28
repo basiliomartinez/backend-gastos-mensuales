@@ -1,9 +1,12 @@
 import { Router } from "express";
+import {
+  obtenerGastos,
+  crearGasto,
+} from "../controllers/gastos.controllers.js";
 
 const router = Router();
 
-router.get("/", (req, res) => {
-    res.json({ mensaje: "Ruta de gastos funcionando" });
-});
+router.get("/", obtenerGastos);
+router.post("/", crearGasto);
 
 export default router;
