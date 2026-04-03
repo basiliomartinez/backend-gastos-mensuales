@@ -61,3 +61,23 @@ export const pagarGasto = async (req, res) => {
     res.status(500).json({ mensaje: "Error al pagar el gasto" });
   }
 };
+
+export const eliminarGasto = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const gastoEliminado = await Gasto.findByIdAndDelete(id);
+
+    if (!gastoEliminado) {
+      return res.status(404).json({ mensaje: "Gasto no encontrado" });
+    }
+
+    res.status(200).json({
+      mensaje: "Gasto eliminado correctamente",
+      gasto: gastoEliminado,
+    });
+  } catch (error) {
+    console.error("Error al eliminar el gasto:", error);
+    res.status(500).json({ mensaje: "Error al eliminar el gasto" });
+  }
+};
