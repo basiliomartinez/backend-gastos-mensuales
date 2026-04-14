@@ -94,3 +94,30 @@ export const eliminarGasto = async (req, res) => {
     res.status(500).json({ mensaje: "Error al eliminar el gasto" });
   }
 };
+export const activarGastoFuturo = async (req, res) => {
+  try {
+    await conectarDB();
+
+    const { id } = req.params;
+
+    const gastoActualizado = await Gasto.findByIdAndUpdate(
+      id,
+      {
+        tipo: "mensual",
+      },
+      { returnDocument: "after" }
+    );
+
+    if (!gastoActualizado) {
+      return res.status(404).json({ mensaje: "Gasto no encontrado" });
+    }
+
+    res.status(200).json({
+      mensaje: "Gasto futuro pasado a mensuales",
+      gasto: gastoActualizado,
+    });
+  } catch (error) {
+    console.error("Error al activar el gasto futuro:", error.message);
+    res.status(500).json({ mensaje: "Error al activar el gasto futuro" });
+  }
+};
