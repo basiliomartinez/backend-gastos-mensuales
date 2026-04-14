@@ -1,6 +1,6 @@
 import { Router } from "express";
 import {
-  obtenerGastos,
+  listarGastos,
   crearGasto,
   pagarGasto,
   eliminarGasto,
@@ -8,7 +8,7 @@ import {
 
 const router = Router();
 
-router.get("/", obtenerGastos);
+router.get("/", listarGastos);
 router.post("/", crearGasto);
 router.put("/:id", pagarGasto);
 router.delete("/:id", eliminarGasto);

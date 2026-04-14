@@ -18,6 +18,11 @@ const gastoSchema = new mongoose.Schema(
       type: Date,
       required: true,
     },
+    tipo: {
+      type: String,
+      enum: ["mensual", "futuro"],
+      default: "mensual",
+    },
     estado: {
       type: String,
       enum: ["pendiente", "pagado"],
@@ -29,7 +34,7 @@ const gastoSchema = new mongoose.Schema(
     },
   },
   {
-    timestamps: true, // createdAt y updatedAt
+    timestamps: true,
     versionKey: false,
   }
 );
