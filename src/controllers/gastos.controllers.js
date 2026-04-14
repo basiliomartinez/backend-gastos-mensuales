@@ -1,19 +1,27 @@
 import Gasto from "../models/Gasto.js";
+import conectarDB from "../database/db.js";
 
-export const obtenerGastos = async (req, res) => {
+export const listarGastos = async (req, res) => {
   try {
-    const gastos = await Gasto.find().sort({ vencimiento: 1 });
+    await conectarDB();
+
+    const tipo = req.query.tipo;
+    const filtro = tipo ? { tipo } : {};
+
+    const gastos = await Gasto.find(filtro).sort({ vencimiento: 1 });
 
     res.status(200).json(gastos);
   } catch (error) {
-    console.error("Error al obtener los gastos:", error);
+    console.error("Error al listar los gastos:", error.message);
     res.status(500).json({ mensaje: "Error al obtener los gastos" });
   }
 };
 
 export const crearGasto = async (req, res) => {
   try {
-    const { nombre, monto, vencimiento, estado, fechaPago } = req.body;
+    await conectarDB();
+
+    const { nombre, monto, vencimiento, estado, fechaPago, tipo } = req.body;
 
     const nuevoGasto = new Gasto({
       nombre,
@@ -21,6 +29,7 @@ export const crearGasto = async (req, res) => {
       vencimiento,
       estado,
       fechaPago,
+      tipo,
     });
 
     await nuevoGasto.save();
@@ -30,13 +39,15 @@ export const crearGasto = async (req, res) => {
       gasto: nuevoGasto,
     });
   } catch (error) {
-    console.error("Error al crear el gasto:", error);
+    console.error("Error al crear el gasto:", error.message);
     res.status(500).json({ mensaje: "Error al crear el gasto" });
   }
 };
 
 export const pagarGasto = async (req, res) => {
   try {
+    await conectarDB();
+
     const { id } = req.params;
 
     const gastoActualizado = await Gasto.findByIdAndUpdate(
@@ -45,7 +56,7 @@ export const pagarGasto = async (req, res) => {
         estado: "pagado",
         fechaPago: new Date(),
       },
-      { new: true }
+      { returnDocument: "after" }
     );
 
     if (!gastoActualizado) {
@@ -57,13 +68,15 @@ export const pagarGasto = async (req, res) => {
       gasto: gastoActualizado,
     });
   } catch (error) {
-    console.error("Error al pagar el gasto:", error);
+    console.error("Error al pagar el gasto:", error.message);
     res.status(500).json({ mensaje: "Error al pagar el gasto" });
   }
 };
 
 export const eliminarGasto = async (req, res) => {
   try {
+    await conectarDB();
+
     const { id } = req.params;
 
     const gastoEliminado = await Gasto.findByIdAndDelete(id);
@@ -77,7 +90,7 @@ export const eliminarGasto = async (req, res) => {
       gasto: gastoEliminado,
     });
   } catch (error) {
-    console.error("Error al eliminar el gasto:", error);
+    console.error("Error al eliminar el gasto:", error.message);
     res.status(500).json({ mensaje: "Error al eliminar el gasto" });
   }
 };
