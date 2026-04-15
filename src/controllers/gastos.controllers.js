@@ -1,15 +1,18 @@
 import Gasto from "../models/Gasto.js";
 import conectarDB from "../database/db.js";
 
-export const obtenerGastos = async (req, res) => {
+export const listarGastos = async (req, res) => {
   try {
     await conectarDB();
 
-    const gastos = await Gasto.find().sort({ vencimiento: 1 });
+    const tipo = req.query.tipo;
+    const filtro = tipo ? { tipo } : {};
+
+    const gastos = await Gasto.find(filtro).sort({ vencimiento: 1 });
 
     res.status(200).json(gastos);
   } catch (error) {
-    console.error("Error al obtener los gastos:", error.message);
+    console.error("Error al listar los gastos:", error.message);
     res.status(500).json({ mensaje: "Error al obtener los gastos" });
   }
 };
@@ -18,7 +21,7 @@ export const crearGasto = async (req, res) => {
   try {
     await conectarDB();
 
-    const { nombre, monto, vencimiento, estado, fechaPago } = req.body;
+    const { nombre, monto, vencimiento, estado, fechaPago, tipo } = req.body;
 
     const nuevoGasto = new Gasto({
       nombre,
@@ -26,6 +29,7 @@ export const crearGasto = async (req, res) => {
       vencimiento,
       estado,
       fechaPago,
+      tipo,
     });
 
     await nuevoGasto.save();
@@ -66,6 +70,34 @@ export const pagarGasto = async (req, res) => {
   } catch (error) {
     console.error("Error al pagar el gasto:", error.message);
     res.status(500).json({ mensaje: "Error al pagar el gasto" });
+  }
+};
+
+export const activarGastoFuturo = async (req, res) => {
+  try {
+    await conectarDB();
+
+    const { id } = req.params;
+
+    const gastoActualizado = await Gasto.findByIdAndUpdate(
+      id,
+      {
+        tipo: "mensual",
+      },
+      { returnDocument: "after" }
+    );
+
+    if (!gastoActualizado) {
+      return res.status(404).json({ mensaje: "Gasto no encontrado" });
+    }
+
+    res.status(200).json({
+      mensaje: "Gasto futuro pasado a mensuales",
+      gasto: gastoActualizado,
+    });
+  } catch (error) {
+    console.error("Error al activar el gasto futuro:", error.message);
+    res.status(500).json({ mensaje: "Error al activar el gasto futuro" });
   }
 };
 
