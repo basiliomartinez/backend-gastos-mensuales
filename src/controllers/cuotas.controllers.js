@@ -1,22 +1,29 @@
 import Cuota from "../models/Cuota.js";
 import conectarDB from "../database/db.js";
 
+const calcularDatosCuota = (cuota) => {
+  const cuotaObj = cuota.toObject ? cuota.toObject() : { ...cuota };
+
+  const cuotasPendientes = cuotaObj.cantidadCuotas - cuotaObj.cuotasPagadas;
+
+  const deudaPendiente = Number(
+    (cuotaObj.precioTotal - cuotaObj.cuotasPagadas * cuotaObj.valorCuota).toFixed(2)
+  );
+
+  return {
+    ...cuotaObj,
+    cuotasPendientes,
+    deudaPendiente: deudaPendiente < 0 ? 0 : deudaPendiente,
+  };
+};
+
 export const listarCuotas = async (req, res) => {
   try {
     await conectarDB();
 
     const cuotas = await Cuota.find().sort({ createdAt: -1 });
 
-    const cuotasCalculadas = cuotas.map((cuota) => {
-      const cuotasPendientes = cuota.cantidadCuotas - cuota.cuotasPagadas;
-      const deudaPendiente = cuotasPendientes * cuota.valorCuota;
-
-      return {
-        ...cuota.toObject(),
-        cuotasPendientes,
-        deudaPendiente,
-      };
-    });
+    const cuotasCalculadas = cuotas.map((cuota) => calcularDatosCuota(cuota));
 
     res.status(200).json(cuotasCalculadas);
   } catch (error) {
@@ -42,11 +49,7 @@ export const crearCuota = async (req, res) => {
 
     await nuevaCuota.save();
 
-    const cuotaCreada = nuevaCuota.toObject();
-    cuotaCreada.cuotasPendientes =
-      cuotaCreada.cantidadCuotas - cuotaCreada.cuotasPagadas;
-    cuotaCreada.deudaPendiente =
-      cuotaCreada.cuotasPendientes * cuotaCreada.valorCuota;
+    const cuotaCreada = calcularDatosCuota(nuevaCuota);
 
     res.status(201).json({
       mensaje: "Cuota creada correctamente",
@@ -82,11 +85,7 @@ export const pagarCuota = async (req, res) => {
 
     await cuota.save();
 
-    const cuotaActualizada = cuota.toObject();
-    cuotaActualizada.cuotasPendientes =
-      cuotaActualizada.cantidadCuotas - cuotaActualizada.cuotasPagadas;
-    cuotaActualizada.deudaPendiente =
-      cuotaActualizada.cuotasPendientes * cuotaActualizada.valorCuota;
+    const cuotaActualizada = calcularDatosCuota(cuota);
 
     res.status(200).json({
       mensaje: "Se registró el pago de una cuota",
@@ -110,11 +109,7 @@ export const eliminarCuota = async (req, res) => {
       return res.status(404).json({ mensaje: "Cuota no encontrada" });
     }
 
-    const cuotaRespuesta = cuotaEliminada.toObject();
-    cuotaRespuesta.cuotasPendientes =
-      cuotaRespuesta.cantidadCuotas - cuotaRespuesta.cuotasPagadas;
-    cuotaRespuesta.deudaPendiente =
-      cuotaRespuesta.cuotasPendientes * cuotaRespuesta.valorCuota;
+    const cuotaRespuesta = calcularDatosCuota(cuotaEliminada);
 
     res.status(200).json({
       mensaje: "Cuota eliminada correctamente",
