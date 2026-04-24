@@ -8,7 +8,10 @@ export const listarGastos = async (req, res) => {
     const tipo = req.query.tipo;
     const filtro = tipo ? { tipo } : {};
 
-    const gastos = await Gasto.find(filtro).sort({ vencimiento: 1 });
+    const gastos = await Gasto.find({
+      ...filtro,
+      usuario: req.usuario.id,
+    }).sort({ vencimiento: 1 });
 
     res.status(200).json(gastos);
   } catch (error) {
@@ -21,15 +24,9 @@ export const crearGasto = async (req, res) => {
   try {
     await conectarDB();
 
-    const { nombre, monto, vencimiento, estado, fechaPago, tipo } = req.body;
-
     const nuevoGasto = new Gasto({
-      nombre,
-      monto,
-      vencimiento,
-      estado,
-      fechaPago,
-      tipo,
+      ...req.body,
+      usuario: req.usuario.id,
     });
 
     await nuevoGasto.save();
@@ -50,8 +47,11 @@ export const pagarGasto = async (req, res) => {
 
     const { id } = req.params;
 
-    const gastoActualizado = await Gasto.findByIdAndUpdate(
-      id,
+    const gastoActualizado = await Gasto.findOneAndUpdate(
+      {
+        _id: id,
+        usuario: req.usuario.id,
+      },
       {
         estado: "pagado",
         fechaPago: new Date(),
@@ -73,35 +73,17 @@ export const pagarGasto = async (req, res) => {
   }
 };
 
-export const eliminarGasto = async (req, res) => {
-  try {
-    await conectarDB();
-
-    const { id } = req.params;
-
-    const gastoEliminado = await Gasto.findByIdAndDelete(id);
-
-    if (!gastoEliminado) {
-      return res.status(404).json({ mensaje: "Gasto no encontrado" });
-    }
-
-    res.status(200).json({
-      mensaje: "Gasto eliminado correctamente",
-      gasto: gastoEliminado,
-    });
-  } catch (error) {
-    console.error("Error al eliminar el gasto:", error.message);
-    res.status(500).json({ mensaje: "Error al eliminar el gasto" });
-  }
-};
 export const activarGastoFuturo = async (req, res) => {
   try {
     await conectarDB();
 
     const { id } = req.params;
 
-    const gastoActualizado = await Gasto.findByIdAndUpdate(
-      id,
+    const gastoActualizado = await Gasto.findOneAndUpdate(
+      {
+        _id: id,
+        usuario: req.usuario.id,
+      },
       {
         tipo: "mensual",
       },
@@ -119,5 +101,30 @@ export const activarGastoFuturo = async (req, res) => {
   } catch (error) {
     console.error("Error al activar el gasto futuro:", error.message);
     res.status(500).json({ mensaje: "Error al activar el gasto futuro" });
+  }
+};
+
+export const eliminarGasto = async (req, res) => {
+  try {
+    await conectarDB();
+
+    const { id } = req.params;
+
+    const gastoEliminado = await Gasto.findOneAndDelete({
+      _id: id,
+      usuario: req.usuario.id,
+    });
+
+    if (!gastoEliminado) {
+      return res.status(404).json({ mensaje: "Gasto no encontrado" });
+    }
+
+    res.status(200).json({
+      mensaje: "Gasto eliminado correctamente",
+      gasto: gastoEliminado,
+    });
+  } catch (error) {
+    console.error("Error al eliminar el gasto:", error.message);
+    res.status(500).json({ mensaje: "Error al eliminar el gasto" });
   }
 };

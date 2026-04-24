@@ -21,7 +21,9 @@ export const listarCuotas = async (req, res) => {
   try {
     await conectarDB();
 
-    const cuotas = await Cuota.find().sort({ createdAt: -1 });
+    const cuotas = await Cuota.find({
+  usuario: req.usuario.id,
+}).sort({ createdAt: -1 });
 
     const cuotasCalculadas = cuotas.map((cuota) => calcularDatosCuota(cuota));
 
@@ -39,13 +41,10 @@ export const crearCuota = async (req, res) => {
     const { articulo, precioTotal, cantidadCuotas, cuotasPagadas, valorCuota } =
       req.body;
 
-    const nuevaCuota = new Cuota({
-      articulo,
-      precioTotal,
-      cantidadCuotas,
-      cuotasPagadas,
-      valorCuota,
-    });
+ const nuevaCuota = new Cuota({
+  ...req.body,
+  usuario: req.usuario.id,
+});
 
     await nuevaCuota.save();
 
