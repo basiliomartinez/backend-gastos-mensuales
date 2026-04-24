@@ -32,6 +32,11 @@ const gastoSchema = new mongoose.Schema(
       type: Date,
       default: null,
     },
+    usuario: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Usuario",
+      required: true,
+    },
   },
   {
     timestamps: true,
