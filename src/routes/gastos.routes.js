@@ -6,13 +6,13 @@ import {
   eliminarGasto,
   activarGastoFuturo,
 } from "../controllers/gastos.controllers.js";
-
+import verificarJWT from "../middlewares/verificarJWT.js";
 const router = Router();
 
-router.get("/", listarGastos);
-router.post("/", crearGasto);
-router.put("/:id", pagarGasto);
-router.put("/activar/:id", activarGastoFuturo);
-router.delete("/:id", eliminarGasto);
+router.get("/", verificarJWT, listarGastos);
+router.post("/", verificarJWT, crearGasto);
+router.put("/:id", verificarJWT, pagarGasto);
+router.put("/activar/:id", verificarJWT, activarGastoFuturo);
+router.delete("/:id", verificarJWT, eliminarGasto);
 
 export default router;
