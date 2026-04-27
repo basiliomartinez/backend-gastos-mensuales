@@ -34,6 +34,11 @@ const cuotaSchema = new mongoose.Schema(
       enum: ["activa", "finalizada"],
       default: "activa",
     },
+    usuario: {
+  type: mongoose.Schema.Types.ObjectId,
+  ref: "Usuario",
+  required: true,
+},
   },
   {
     timestamps: true,
