@@ -4,10 +4,14 @@ import conectarDB from "../database/db.js";
 const calcularDatosCuota = (cuota) => {
   const cuotaObj = cuota.toObject ? cuota.toObject() : { ...cuota };
 
-  const cuotasPendientes = cuotaObj.cantidadCuotas - cuotaObj.cuotasPagadas;
+  const cuotasPendientes =
+    cuotaObj.cantidadCuotas - cuotaObj.cuotasPagadas;
 
   const deudaPendiente = Number(
-    (cuotaObj.precioTotal - cuotaObj.cuotasPagadas * cuotaObj.valorCuota).toFixed(2)
+    (
+      cuotaObj.precioTotal -
+      cuotaObj.cuotasPagadas * cuotaObj.valorCuota
+    ).toFixed(2)
   );
 
   return {
@@ -22,10 +26,12 @@ export const listarCuotas = async (req, res) => {
     await conectarDB();
 
     const cuotas = await Cuota.find({
-  usuario: req.usuario.id,
-}).sort({ createdAt: -1 });
+      usuario: req.usuario.id,
+    }).sort({ createdAt: -1 });
 
-    const cuotasCalculadas = cuotas.map((cuota) => calcularDatosCuota(cuota));
+    const cuotasCalculadas = cuotas.map((cuota) =>
+      calcularDatosCuota(cuota)
+    );
 
     res.status(200).json(cuotasCalculadas);
   } catch (error) {
@@ -38,13 +44,10 @@ export const crearCuota = async (req, res) => {
   try {
     await conectarDB();
 
-    const { articulo, precioTotal, cantidadCuotas, cuotasPagadas, valorCuota } =
-      req.body;
-
- const nuevaCuota = new Cuota({
-  ...req.body,
-  usuario: req.usuario.id,
-});
+    const nuevaCuota = new Cuota({
+      ...req.body,
+      usuario: req.usuario.id,
+    });
 
     await nuevaCuota.save();
 
@@ -66,14 +69,19 @@ export const pagarCuota = async (req, res) => {
 
     const { id } = req.params;
 
-    const cuota = await Cuota.findById(id);
+    const cuota = await Cuota.findOne({
+      _id: id,
+      usuario: req.usuario.id,
+    });
 
     if (!cuota) {
       return res.status(404).json({ mensaje: "Cuota no encontrada" });
     }
 
     if (cuota.cuotasPagadas >= cuota.cantidadCuotas) {
-      return res.status(400).json({ mensaje: "La cuota ya está finalizada" });
+      return res
+        .status(400)
+        .json({ mensaje: "La cuota ya está finalizada" });
     }
 
     cuota.cuotasPagadas += 1;
@@ -102,7 +110,10 @@ export const eliminarCuota = async (req, res) => {
 
     const { id } = req.params;
 
-    const cuotaEliminada = await Cuota.findByIdAndDelete(id);
+    const cuotaEliminada = await Cuota.findOneAndDelete({
+      _id: id,
+      usuario: req.usuario.id,
+    });
 
     if (!cuotaEliminada) {
       return res.status(404).json({ mensaje: "Cuota no encontrada" });
