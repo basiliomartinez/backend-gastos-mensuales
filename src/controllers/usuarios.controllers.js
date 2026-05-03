@@ -9,11 +9,29 @@ export const registrarUsuario = async (req, res) => {
 
     const { nombre, email, password } = req.body;
 
+    if (!nombre || !email || !password) {
+      return res.status(400).json({
+        mensaje: "Todos los campos son obligatorios",
+      });
+    }
+
+    if (!email.includes("@")) {
+      return res.status(400).json({
+        mensaje: "Ingresá un email válido",
+      });
+    }
+
+    if (password.length < 6) {
+      return res.status(400).json({
+        mensaje: "La contraseña debe tener al menos 6 caracteres",
+      });
+    }
+
     const usuarioExistente = await Usuario.findOne({ email });
 
     if (usuarioExistente) {
       return res.status(400).json({
-        mensaje: "Ya existe un usuario con ese email",
+        mensaje: "El email ya está registrado",
       });
     }
 
@@ -43,6 +61,12 @@ export const loginUsuario = async (req, res) => {
     await conectarDB();
 
     const { email, password } = req.body;
+
+    if (!email || !password) {
+      return res.status(400).json({
+        mensaje: "Completá email y contraseña",
+      });
+    }
 
     const usuario = await Usuario.findOne({ email });
 
