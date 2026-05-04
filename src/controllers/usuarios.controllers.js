@@ -3,6 +3,20 @@ import Usuario from "../models/Usuario.js";
 import conectarDB from "../database/db.js";
 import generarJWT from "../helpers/generarJWT.js";
 
+const validarNombre = (nombre) => {
+  const regexNombre = /^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/;
+  return regexNombre.test(nombre);
+};
+
+const validarPassword = (password) => {
+  const tieneMinuscula = /[a-z]/.test(password);
+  const tieneMayuscula = /[A-Z]/.test(password);
+  const tieneNumero = /\d/.test(password);
+  const tieneEspecial = /[!@#$%^&*(),.?":{}|<>_\-+=/\\[\]]/.test(password);
+
+  return tieneMinuscula && tieneMayuscula && tieneNumero && tieneEspecial;
+};
+
 export const registrarUsuario = async (req, res) => {
   try {
     await conectarDB();
@@ -15,15 +29,34 @@ export const registrarUsuario = async (req, res) => {
       });
     }
 
+    if (nombre.trim().length < 2 || nombre.trim().length > 50) {
+      return res.status(400).json({
+        mensaje: "El nombre debe tener entre 2 y 50 caracteres",
+      });
+    }
+
+    if (!validarNombre(nombre.trim())) {
+      return res.status(400).json({
+        mensaje: "El nombre solo puede contener letras y espacios",
+      });
+    }
+
     if (!email.includes("@")) {
       return res.status(400).json({
         mensaje: "Ingresá un email válido",
       });
     }
 
-    if (password.length < 6) {
+    if (password.length < 8) {
       return res.status(400).json({
-        mensaje: "La contraseña debe tener al menos 6 caracteres",
+        mensaje: "La contraseña debe tener al menos 8 caracteres",
+      });
+    }
+
+    if (!validarPassword(password)) {
+      return res.status(400).json({
+        mensaje:
+          "La contraseña debe incluir minúscula, mayúscula, número y carácter especial",
       });
     }
 
@@ -38,7 +71,7 @@ export const registrarUsuario = async (req, res) => {
     const passwordHasheado = await bcrypt.hash(password, 10);
 
     const nuevoUsuario = new Usuario({
-      nombre,
+      nombre: nombre.trim(),
       email,
       password: passwordHasheado,
     });
