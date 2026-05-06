@@ -56,7 +56,7 @@ export const pagarGasto = async (req, res) => {
         estado: "pagado",
         fechaPago: new Date(),
       },
-      { returnDocument: "after" }
+      { returnDocument: "after" },
     );
 
     if (!gastoActualizado) {
@@ -87,7 +87,7 @@ export const activarGastoFuturo = async (req, res) => {
       {
         tipo: "mensual",
       },
-      { returnDocument: "after" }
+      { returnDocument: "after" },
     );
 
     if (!gastoActualizado) {
@@ -101,6 +101,42 @@ export const activarGastoFuturo = async (req, res) => {
   } catch (error) {
     console.error("Error al activar el gasto futuro:", error.message);
     res.status(500).json({ mensaje: "Error al activar el gasto futuro" });
+  }
+};
+
+export const editarGasto = async (req, res) => {
+  try {
+    await conectarDB();
+
+    const { id } = req.params;
+
+    const gastoActualizado = await Gasto.findOneAndUpdate(
+      {
+        _id: id,
+        usuario: req.usuario.id,
+      },
+      req.body,
+      {
+        returnDocument: "after",
+      },
+    );
+
+    if (!gastoActualizado) {
+      return res.status(404).json({
+        mensaje: "Gasto no encontrado",
+      });
+    }
+
+    res.status(200).json({
+      mensaje: "Gasto actualizado correctamente",
+      gasto: gastoActualizado,
+    });
+  } catch (error) {
+    console.error("Error al editar el gasto:", error.message);
+
+    res.status(500).json({
+      mensaje: "Error al editar el gasto",
+    });
   }
 };
 
