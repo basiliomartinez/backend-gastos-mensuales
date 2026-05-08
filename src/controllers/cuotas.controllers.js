@@ -104,6 +104,39 @@ export const pagarCuota = async (req, res) => {
   }
 };
 
+export const editarCuota = async (req, res) => {
+  try {
+    await conectarDB();
+
+    const { id } = req.params;
+
+    const cuotaActualizada = await Cuota.findOneAndUpdate(
+      {
+        _id: id,
+        usuario: req.usuario.id,
+      },
+      req.body,
+      {
+        returnDocument: "after",
+      }
+    );
+
+    if (!cuotaActualizada) {
+      return res.status(404).json({ mensaje: "Cuota no encontrada" });
+    }
+
+    const cuotaRespuesta = calcularDatosCuota(cuotaActualizada);
+
+    res.status(200).json({
+      mensaje: "Cuota actualizada correctamente",
+      cuota: cuotaRespuesta,
+    });
+  } catch (error) {
+    console.error("Error al editar cuota:", error.message);
+    res.status(500).json({ mensaje: "Error al editar cuota" });
+  }
+};
+
 export const eliminarCuota = async (req, res) => {
   try {
     await conectarDB();
