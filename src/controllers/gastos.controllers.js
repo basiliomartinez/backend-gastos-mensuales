@@ -5,8 +5,17 @@ export const listarGastos = async (req, res) => {
   try {
     await conectarDB();
 
-    const tipo = req.query.tipo;
-    const filtro = tipo ? { tipo } : {};
+const { tipo, periodo } = req.query;
+
+const filtro = {};
+
+if (tipo) {
+  filtro.tipo = tipo;
+}
+
+if (periodo) {
+  filtro.periodo = periodo;
+}
 
     const gastos = await Gasto.find({
       ...filtro,
@@ -24,10 +33,16 @@ export const crearGasto = async (req, res) => {
   try {
     await conectarDB();
 
-    const nuevoGasto = new Gasto({
-      ...req.body,
-      usuario: req.usuario.id,
-    });
+ const periodo =
+  req.body.tipo === "mensual"
+    ? req.body.periodo
+    : null;
+
+const nuevoGasto = new Gasto({
+  ...req.body,
+  periodo,
+  usuario: req.usuario.id,
+});
 
     await nuevoGasto.save();
 
