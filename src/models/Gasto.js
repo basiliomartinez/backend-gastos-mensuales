@@ -32,6 +32,12 @@ const gastoSchema = new mongoose.Schema(
       type: Date,
       default: null,
     },
+    
+periodo: {
+  type: String,
+  default: null,
+},
+
     usuario: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Usuario",
